@@ -1,0 +1,45 @@
+formatVersion: 1
+inputs:
+  Machine_Name:
+    type: string
+    title: Machine Name
+    default: veducate
+  Machine_Count:
+    type: number
+    title: Machine Count
+    default: 2
+resources:
+  Cloud_SaltStack_1:
+    type: Cloud.SaltStack
+    allocatePerInstance: true
+    properties:
+      hosts:
+        - ${resource.Cloud_Machine_1.id}
+      masterId: saltstack_enterprise_installer
+      stateFiles:
+        - /Windows/baseline/init.sls
+      saltEnvironment: base
+      name: Windows Baseline
+  Cloud_Machine_1:
+    type: Cloud.vSphere.Machine
+    allocatePerInstance: true
+    properties:
+      image: Windows Server
+      flavor: small
+      name: ${input.Machine_Name}
+      constraints:
+        - tag: env:dean
+      remoteAccess:
+        authentication: usernamePassword
+        username: Admin
+        password: VMware1!
+      networks:
+        - network: ${resource.NSX.id}
+      count: ${input.Machine_Count}
+  NSX:
+    type: Cloud.NSX.Network
+    properties:
+      networkType: existing
+      constraints:
+        - tag: net:existing
+        - tag: net:dean
